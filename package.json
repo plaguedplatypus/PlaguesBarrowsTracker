@@ -1,0 +1,30 @@
+{
+  "name": "barrows-tunnel-helper",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Local-only Alt1 helper for remembering the Barrows tunnel mound.",
+  "scripts": {
+    "build": "webpack --mode production",
+    "dev": "webpack serve --mode development --host 127.0.0.1 --port 8080",
+    "serve": "http-server dist -a 127.0.0.1 -p 8080 -c-1",
+    "test": "tsc -p tsconfig.tests.json && tsx --test tests/**/*.test.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "alt1": "^0.1.3"
+  },
+  "devDependencies": {
+    "@types/node": "24.13.3",
+    "copy-webpack-plugin": "^14.0.0",
+    "css-loader": "^7.1.2",
+    "html-webpack-plugin": "^5.6.4",
+    "http-server": "^14.1.1",
+    "style-loader": "^4.0.0",
+    "ts-loader": "^9.5.4",
+    "tsx": "^4.20.5",
+    "typescript": "^5.9.2",
+    "webpack": "^5.101.3",
+    "webpack-cli": "6.0.1",
+    "webpack-dev-server": "^6.0.0"
+  }
+}

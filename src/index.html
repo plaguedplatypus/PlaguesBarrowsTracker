@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#11130f" />
+    <link rel="icon" href="./images/map.png" />
+    <title>Barrows Tunnel</title>
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="app-header">
+        <div>
+          <p class="eyebrow">THE BARROWS BROTHERS</p>
+          <h1>Tunnel mound</h1>
+        </div>
+        <button id="reset-button" class="reset-button" type="button" aria-label="Clear tunnel selection" title="Clear selection">
+          <span aria-hidden="true">↻</span>
+        </button>
+      </header>
+
+      <p class="instruction" id="selection-summary">Select the mound that leads underground.</p>
+
+      <fieldset class="map" aria-label="Barrows mound tunnel selector">
+        <legend class="sr-only">Choose the tunnel mound</legend>
+        <div class="map-shade" aria-hidden="true"></div>
+        <button id="puzzle-button" class="map-tool-button" type="button" aria-label="Puzzle reference" title="Puzzle reference">?</button>
+
+        <label class="mound mound--verac" data-mound="verac">
+          <input type="radio" name="mound" value="verac" />
+          <span class="mound__name">Verac</span>
+        </label>
+
+        <label id="akrisae-selector" class="mound mound--akrisae" data-mound="akrisae" hidden>
+          <input type="radio" name="mound" value="akrisae" />
+          <span class="mound__name">Akrisae</span>
+        </label>
+
+        <label class="mound mound--northeast" data-mound="dharok">
+          <input type="radio" name="mound" value="dharok" />
+          <span class="mound__name">Dharok</span>
+        </label>
+
+        <label class="mound mound--center" data-mound="ahrim">
+          <input type="radio" name="mound" value="ahrim" />
+          <span class="mound__name">Ahrim</span>
+        </label>
+
+        <div id="linza-display" class="mound mound--display mound--linza" role="status" aria-label="Linza" hidden>
+          <span class="mound__name">Linza</span>
+        </div>
+
+        <label class="mound mound--southwest" data-mound="torag">
+          <input type="radio" name="mound" value="torag" />
+          <span class="mound__name">Torag</span>
+        </label>
+
+        <label class="mound mound--southeast" data-mound="guthan">
+          <input type="radio" name="mound" value="guthan" />
+          <span class="mound__name">Guthan</span>
+        </label>
+
+        <label class="mound mound--south" data-mound="karil">
+          <input type="radio" name="mound" value="karil" />
+          <span class="mound__name">Karil</span>
+        </label>
+
+        <button id="settings-button" class="settings-button" type="button" aria-label="Settings" title="Settings">•••</button>
+      </fieldset>
+
+      <div class="map-status">
+        <span id="status-dot" class="status-dot" aria-hidden="true"></span>
+        <strong id="status-title">Starting screen readers…</strong>
+      </div>
+
+      <dialog id="settings-modal" class="settings-modal" aria-labelledby="settings-title">
+        <div class="settings-modal__header">
+          <h2 id="settings-title">Settings</h2>
+          <button id="settings-close-button" class="settings-close-button" type="button" aria-label="Close settings">×</button>
+        </div>
+        <section class="settings-section" aria-labelledby="automation-heading">
+          <h3 id="automation-heading">Automation</h3>
+          <div class="automation-row">
+            <p id="status-detail" class="settings-detail">Looking for the RuneScape interfaces.</p>
+            <button id="find-chat-button" class="find-chat-button" type="button" hidden>Find Chat</button>
+          </div>
+          <div id="chat-select-row" class="chat-select-row" hidden>
+            <label for="chat-select">Chat window</label>
+            <select id="chat-select" class="chat-select" aria-label="Select chat window" disabled>
+              <option value="">Finding chat windows…</option>
+            </select>
+          </div>
+        </section>
+        <section class="settings-section" aria-labelledby="map-heading">
+          <h3 id="map-heading">Map</h3>
+          <label class="setting-toggle">
+            <span>
+              <strong>Show Akrisae</strong>
+              <small>Requires Ritual of the Mahjarrat.</small>
+            </span>
+            <input id="show-akrisae-toggle" type="checkbox" />
+            <span class="setting-toggle__track" aria-hidden="true"></span>
+          </label>
+          <label class="setting-toggle">
+            <span>
+              <strong>Show Linza</strong>
+              <small>Requires Kindred Spirits.</small>
+            </span>
+            <input id="show-linza-toggle" type="checkbox" />
+            <span class="setting-toggle__track" aria-hidden="true"></span>
+          </label>
+        </section>
+      </dialog>
+
+      <dialog id="puzzle-modal" class="settings-modal puzzle-modal" aria-labelledby="puzzle-title">
+        <div class="settings-modal__header">
+          <h2 id="puzzle-title">Puzzle reference</h2>
+          <button id="puzzle-close-button" class="settings-close-button" type="button" aria-label="Close puzzle reference">×</button>
+        </div>
+        <p class="puzzle-intro">Each puzzle type has one fixed answer. The choices may move.</p>
+        <div class="puzzle-list">
+          <div class="puzzle-item">
+            <img class="puzzle-item__visual" src="./images/decreasing-sides.png" alt="" />
+            <div>
+              <strong>Decreasing number of sides</strong>
+              <span>Choose the square.</span>
+            </div>
+          </div>
+          <div class="puzzle-item">
+            <img class="puzzle-item__visual" src="./images/rotating-arrow.png" alt="" />
+            <div>
+              <strong>Rotating arrow</strong>
+              <span>Choose the circle followed by a left-pointing arrow.</span>
+            </div>
+          </div>
+          <div class="puzzle-item">
+            <img class="puzzle-item__visual" src="./images/rising-grey-space.png" alt="" />
+            <div>
+              <strong>Rising grey space</strong>
+              <span>Choose the white rectangle above two grey squares.</span>
+            </div>
+          </div>
+          <div class="puzzle-item">
+            <img class="puzzle-item__visual" src="./images/clockwise-grey-space.png" alt="" />
+            <div>
+              <strong>Clockwise grey space</strong>
+              <span>Choose the square with a smaller grey square in its top-right corner.</span>
+            </div>
+          </div>
+        </div>
+      </dialog>
+
+      <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    </main>
+  </body>
+</html>

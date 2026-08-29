@@ -1,0 +1,12 @@
+{
+  "appName": "Barrows Tunnel",
+  "description": "Remember which Barrows mound leads to the tunnels and reset it after a completed run.",
+  "appUrl": "./index.html",
+  "configUrl": "./appconfig.json",
+  "iconUrl": "./images/map.png",
+  "defaultWidth": 300,
+  "defaultHeight": 405,
+  "requestHandlers": [],
+  "activators": [],
+  "permissions": "pixel"
+}
