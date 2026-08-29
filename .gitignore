@@ -4,3 +4,4 @@ tests/
 .vscode/
 package-lock.json
 npm-debug.log*
+*.js.map

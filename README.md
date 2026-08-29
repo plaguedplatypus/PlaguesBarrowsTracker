@@ -1,4 +1,4 @@
-# Barrows Tunnel Tracker
+# Barrows Tracker
 
 An [Alt1 Toolkit](https://runeapps.org/alt1) helper for remembering which Barrows mound leads to the final encounter.
 
@@ -21,7 +21,7 @@ An [Alt1 Toolkit](https://runeapps.org/alt1) helper for remembering which Barrow
 
 ## Installation
 
-1. 
+1. alt1://addapp/https://plaguedplatypus.github.io/PlaguesBarrowsTracker/appconfig.json
 2. Enable the app's **View screen** permission when prompted.
 
 ## Usage

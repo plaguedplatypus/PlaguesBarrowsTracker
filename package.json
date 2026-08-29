@@ -1,8 +1,8 @@
 {
-  "name": "barrows-tunnel-helper",
+  "name": "barrows-tracker",
   "version": "1.0.0",
   "private": true,
-  "description": "Local-only Alt1 helper for remembering the Barrows tunnel mound.",
+  "description": "Alt1 helper for remembering the Barrows tunnel mound.",
   "scripts": {
     "build": "webpack --mode production",
     "dev": "webpack serve --mode development --host 127.0.0.1 --port 8080",
