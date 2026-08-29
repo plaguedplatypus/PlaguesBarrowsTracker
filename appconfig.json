@@ -1,5 +1,5 @@
 {
-  "appName": "Barrows Tunnel",
+  "appName": "Barrows Tracker",
   "description": "Remember which Barrows mound leads to the tunnels and reset it after a completed run.",
   "appUrl": "./index.html",
   "configUrl": "./appconfig.json",
