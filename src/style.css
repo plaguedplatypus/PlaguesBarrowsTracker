@@ -17,7 +17,6 @@ body {
   min-height: 360px;
   margin: 0;
   overflow: hidden;
-  /* webpackIgnore: true */
   background:
     linear-gradient(rgba(5, 15, 20, 0.18), rgba(5, 15, 20, 0.50)),
     url("./images/bg.png") center / cover no-repeat;
@@ -69,7 +68,7 @@ h1 {
   display: grid;
   width: 34px;
   height: 34px;
-  padding: 8px;
+  padding: 3px 0 0 0;
   border: 1px solid #3c4036;
   border-radius: 8px;
   background: #1b1e18;
@@ -340,7 +339,6 @@ h1 {
   padding: 6px;
   border: 1px solid #5a513d;
   border-radius: 10px;
-  /* webpackIgnore: true */
   background:
     linear-gradient(rgba(5, 15, 20, 0.18), rgba(5, 15, 20, 0.50)),
     url("./images/bg.png") center / cover no-repeat;
@@ -504,6 +502,46 @@ h1 {
 .setting-toggle input:focus-visible + .setting-toggle__track {
   outline: 2px solid #c0a56b;
   outline-offset: 2px;
+}
+
+.support-links {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.support-link {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #d8bd7d;
+  font-size: 10px;
+  white-space: nowrap;
+  text-decoration: none;
+  transition: color 120ms ease;
+}
+
+.support-link:hover,
+.support-link:focus-visible {
+  color: #f0e4ca;
+  outline: none;
+}
+
+.support-link img {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+}
+
+.support-link span {
+  display: inline;
+  min-width: 0;
 }
 
 .puzzle-intro {

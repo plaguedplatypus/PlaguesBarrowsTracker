@@ -27,7 +27,13 @@ module.exports = {
       },
       {
         test: /\.css$/,
-        use: ["style-loader", "css-loader"],
+        use: [
+          "style-loader",
+          {
+            loader: "css-loader",
+            options: { url: false },
+          },
+        ],
       },
       {
         test: /\.(png|svg|jpg|jpeg)$/i,
@@ -44,6 +50,9 @@ module.exports = {
       patterns: [
         { from: "src/appconfig.json", to: "appconfig.json" },
         { from: "src/images/map.png", to: "images/map.png" },
+        { from: "src/images/bg.png", to: "images/bg.png" },
+        { from: "src/images/coffee.png", to: "images/coffee.png" },
+        { from: "src/images/discord.png", to: "images/discord.png" },
         { from: "src/images/brothers-anchor.data.png", to: "images/brothers-anchor.png" },
         { from: "src/images/decreasing-sides.png", to: "images/decreasing-sides.png" },
         { from: "src/images/rotating-arrow.png", to: "images/rotating-arrow.png" },
