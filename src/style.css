@@ -531,7 +531,7 @@ h1 {
 .support-link:hover,
 .support-link:focus-visible {
   color: #f0e4ca;
-  opacity: 0.85;
+  opacity: 0.80;
   outline: none;
 }
 
