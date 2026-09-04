@@ -520,6 +520,7 @@ h1 {
   padding: 0;
   border: 0;
   background: transparent;
+  opacity: 0.5;
   color: #d8bd7d;
   font-size: 10px;
   white-space: nowrap;
@@ -530,12 +531,13 @@ h1 {
 .support-link:hover,
 .support-link:focus-visible {
   color: #f0e4ca;
+  opacity: 0.85;
   outline: none;
 }
 
 .support-link img {
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
   object-fit: contain;
 }
 
