@@ -10,7 +10,7 @@ export const moundNames = {
 
 export type MoundId = keyof typeof moundNames;
 
-export const brotherMounds = {
+const brotherMounds = {
   ahrim: "ahrim",
   dharok: "dharok",
   guthan: "guthan",
@@ -23,7 +23,7 @@ export const brotherMounds = {
 export type BrotherId = keyof typeof brotherMounds;
 export type PanelBrotherId = BrotherId | "linza";
 
-export const brothers = Object.keys(brotherMounds) as BrotherId[];
+const brothers = Object.keys(brotherMounds) as BrotherId[];
 
 export function isEligibleBrother(brother: PanelBrotherId): brother is BrotherId {
   return brother !== "linza";
@@ -52,7 +52,7 @@ export function inferMound(remainingBrothers: BrotherId[]): MoundId | null {
   return brotherMounds[remainingBrothers[0]];
 }
 
-export type PixelBuffer = {
+type PixelBuffer = {
   width: number;
   height: number;
   data: ArrayLike<number>;
@@ -79,7 +79,7 @@ export function isMoundId(value: string | null): value is MoundId {
   return value !== null && Object.prototype.hasOwnProperty.call(moundNames, value);
 }
 
-export function normalizeChatLine(line: string): string {
+function normalizeChatLine(line: string): string {
   return line
     .replace(/^\[\d{2}:\d{2}:\d{2}\]\s*/, "")
     .replace(/[‘’`]/g, "'")
@@ -88,13 +88,9 @@ export function normalizeChatLine(line: string): string {
 }
 
 // Accept the normal completion line plus common OCR and formatting variants.
-export function isCompletionMessage(line: string): boolean {
+function isCompletionMessage(line: string): boolean {
   const normalized = normalizeChatLine(line);
   return /^You have killed ['"]?\d+['"]? (?:of )?(?:the )?Barrows Brothers\.?$/i.test(normalized);
-}
-
-export function containsCompletionMessage(lines: string[]): boolean {
-  return findCompletionMessage(lines) !== null;
 }
 
 export function findCompletionMessage(lines: string[]): string | null {
@@ -108,7 +104,7 @@ export function findCompletionMessage(lines: string[]): string | null {
   return null;
 }
 
-export function canonicalChatMessageKey(message: string): string {
+function canonicalChatMessageKey(message: string): string {
   return message
     .replace(/[‘’`]/g, "'")
     .toLowerCase()

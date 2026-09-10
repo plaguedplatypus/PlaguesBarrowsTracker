@@ -21,48 +21,48 @@
 
       <p class="instruction" id="selection-summary">Select the mound that leads underground.</p>
 
-      <fieldset class="map" aria-label="Barrows mound tunnel selector">
+      <fieldset class="map">
         <legend class="sr-only">Choose the tunnel mound</legend>
         <div class="map-shade" aria-hidden="true"></div>
-        <button id="puzzle-button" class="map-tool-button" type="button" aria-label="Puzzle reference" title="Puzzle reference">?</button>
+        <button id="puzzle-button" class="puzzle-button" type="button" aria-label="Puzzle reference" title="Puzzle reference">?</button>
 
-        <label class="mound mound--verac" data-mound="verac">
+        <label class="mound mound--verac">
           <input type="radio" name="mound" value="verac" />
-          <span class="mound_name">Verac</span>
+          <span class="mound-name">Verac</span>
         </label>
 
-        <label id="akrisae-selector" class="mound mound--akrisae" data-mound="akrisae" hidden>
+        <label id="akrisae-selector" class="mound mound--akrisae" hidden>
           <input type="radio" name="mound" value="akrisae" />
-          <span class="mound_name">Akrisae</span>
+          <span class="mound-name">Akrisae</span>
         </label>
 
-        <label class="mound mound--northeast" data-mound="dharok">
+        <label class="mound mound--northeast">
           <input type="radio" name="mound" value="dharok" />
-          <span class="mound_name">Dharok</span>
+          <span class="mound-name">Dharok</span>
         </label>
 
-        <label class="mound mound--center" data-mound="ahrim">
+        <label class="mound mound--center">
           <input type="radio" name="mound" value="ahrim" />
-          <span class="mound_name">Ahrim</span>
+          <span class="mound-name">Ahrim</span>
         </label>
 
         <div id="linza-display" class="mound mound--display mound--linza" role="status" aria-label="Linza" hidden>
-          <span class="mound_name">Linza</span>
+          <span class="mound-name">Linza</span>
         </div>
 
-        <label class="mound mound--southwest" data-mound="torag">
+        <label class="mound mound--southwest">
           <input type="radio" name="mound" value="torag" />
-          <span class="mound_name">Torag</span>
+          <span class="mound-name">Torag</span>
         </label>
 
-        <label class="mound mound--southeast" data-mound="guthan">
+        <label class="mound mound--southeast">
           <input type="radio" name="mound" value="guthan" />
-          <span class="mound_name">Guthan</span>
+          <span class="mound-name">Guthan</span>
         </label>
 
-        <label class="mound mound--south" data-mound="karil">
+        <label class="mound mound--south">
           <input type="radio" name="mound" value="karil" />
-          <span class="mound_name">Karil</span>
+          <span class="mound-name">Karil</span>
         </label>
 
         <button id="settings-button" class="settings-button" type="button" aria-label="Settings" title="Settings">•••</button>
@@ -73,20 +73,20 @@
         <strong id="status-title">Starting screen readers…</strong>
       </div>
 
-      <dialog id="settings-modal" class="settings-modal" aria-labelledby="settings-title">
-        <div class="settings-modal_header">
+      <dialog id="settings-modal" class="app-modal" aria-labelledby="settings-title">
+        <div class="app-modal-header">
           <h2 id="settings-title">Settings</h2>
-          <button id="settings-close-button" class="settings-close-button" type="button" aria-label="Close settings">x</button>
+          <button id="settings-close-button" class="app-modal-close" type="button" aria-label="Close settings">x</button>
         </div>
         <section class="settings-section" aria-labelledby="automation-heading">
           <h3 id="automation-heading">Automation</h3>
           <div class="automation-row">
             <p id="status-detail" class="settings-detail">Looking for the RuneScape interfaces.</p>
-            <button id="find-chat-button" class="find-chat-button" type="button" hidden>Find Chat</button>
+            <button id="find-chat-button" class="find-chat-button" type="button" hidden>Find chat</button>
           </div>
           <div id="chat-select-row" class="chat-select-row" hidden>
             <label for="chat-select">Chat window</label>
-            <select id="chat-select" class="chat-select" aria-label="Select chat window" disabled>
+            <select id="chat-select" class="chat-select" disabled>
               <option value="">Finding chat windows…</option>
             </select>
           </div>
@@ -99,7 +99,7 @@
               <small>Requires Ritual of the Mahjarrat.</small>
             </span>
             <input id="show-akrisae-toggle" type="checkbox" />
-            <span class="setting-toggle_track" aria-hidden="true"></span>
+            <span class="setting-toggle-track" aria-hidden="true"></span>
           </label>
           <label class="setting-toggle">
             <span>
@@ -107,7 +107,7 @@
               <small>Requires Kindred Spirits.</small>
             </span>
             <input id="show-linza-toggle" type="checkbox" />
-            <span class="setting-toggle_track" aria-hidden="true"></span>
+            <span class="setting-toggle-track" aria-hidden="true"></span>
           </label>
         </section>
         <section class="settings-section" aria-labelledby="support-heading">
@@ -125,39 +125,39 @@
         </section>
       </dialog>
 
-      <dialog id="puzzle-modal" class="settings-modal puzzle-modal" aria-labelledby="puzzle-title">
-        <div class="settings-modal_header">
+      <dialog id="puzzle-modal" class="app-modal puzzle-modal" aria-labelledby="puzzle-title">
+        <div class="app-modal-header">
           <h2 id="puzzle-title">Puzzle reference</h2>
-          <button id="puzzle-close-button" class="settings-close-button" type="button" aria-label="Close puzzle reference">x</button>
+          <button id="puzzle-close-button" class="app-modal-close" type="button" aria-label="Close puzzle reference">x</button>
         </div>
         <p class="puzzle-intro">Each puzzle type has one fixed answer. The choices may move.</p>
         <div class="puzzle-list">
           <div class="puzzle-item">
-            <img class="puzzle-item_visual" src="./images/decreasing-sides.png" alt="" />
+            <img class="puzzle-item-visual" src="./images/decreasing-sides.png" alt="" />
             <div>
               <strong>Decreasing number of sides</strong>
               <span>Choose the square.</span>
             </div>
           </div>
           <div class="puzzle-item">
-            <img class="puzzle-item_visual" src="./images/rotating-arrow.png" alt="" />
+            <img class="puzzle-item-visual" src="./images/rotating-arrow.png" alt="" />
             <div>
               <strong>Rotating arrow</strong>
               <span>Choose the circle followed by a left-pointing arrow.</span>
             </div>
           </div>
           <div class="puzzle-item">
-            <img class="puzzle-item_visual" src="./images/rising-grey-space.png" alt="" />
+            <img class="puzzle-item-visual" src="./images/rising-grey-space.png" alt="" />
             <div>
               <strong>Rising grey space</strong>
               <span>Choose the white rectangle above 2 grey squares.</span>
             </div>
           </div>
           <div class="puzzle-item">
-            <img class="puzzle-item_visual" src="./images/clockwise-grey-space.png" alt="" />
+            <img class="puzzle-item-visual" src="./images/clockwise-grey-space.png" alt="" />
             <div>
               <strong>Clockwise grey space</strong>
-              <span>Choose the 3 light squares on bottom right.</span>
+              <span>Choose the 3 light squares at the bottom right.</span>
             </div>
           </div>
         </div>

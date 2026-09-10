@@ -22,7 +22,7 @@ const showAkrisaeKey = "barrows-show-akrisae";
 const showLinzaKey = "barrows-show-linza";
 const scanMs = 650;
 const panelScanMs = 1300;
-const panelRelocateMs = 5000;
+const panelRetryMs = 5000;
 const chatReaderWarmupMs = 5000;
 const chatReaderRetryMs = 500;
 const appConfigUrl = "./appconfig.json";
@@ -55,15 +55,13 @@ const moundInputs = Array.from(document.querySelectorAll<HTMLInputElement>('inpu
 map.style.backgroundImage = 'url("./images/map.png")';
 
 let toastTimer: number | undefined;
-let scanTimer: number | undefined;
+let chatScanTimer: number | undefined;
 let panelScanTimer: number | undefined;
-let locateRetryTimer: number | undefined;
-let reader: ChatBoxReader | null = null;
+let chatLocateRetryTimer: number | undefined;
+let chatReader: ChatBoxReader | null = null;
 let panelReader: BrothersPanelReader | null = null;
-let readerPrimed = false;
-let scanInProgress = false;
-let lastLocateAttempt = 0;
-let lastPanelScan = 0;
+let chatPrimed = false;
+let lastChatLocateAttempt = 0;
 let lastPanelLocateAttempt = 0;
 let chatReaderWarmupUntil = 0;
 let linzaRemaining: boolean | null = null;
@@ -80,11 +78,6 @@ function setStatus(kind: StatusKind, title: string, detail: string, showFindChat
   statusTitle.textContent = title;
   statusDetail.textContent = detail;
   findChatButton.hidden = !showFindChat;
-}
-
-function getChatReaderPosition(): ChatReaderPosition | null {
-  if (!reader?.pos) return null;
-  return reader.pos as unknown as ChatReaderPosition;
 }
 
 function getChatBoxKey(box: Chatbox): string {
@@ -141,14 +134,14 @@ function renderChatChoices(position: ChatReaderPosition): void {
 }
 
 function resetChatReaderHistory(): void {
-  if (!reader) return;
-  reader.overlaplines = [];
-  reader.lastTimestamp = -1;
-  reader.lastTimestampUpdate = 0;
-  reader.addedLastread = false;
-  reader.font = null;
-  reader.lastReadBuffer = null;
-  readerPrimed = false;
+  if (!chatReader) return;
+  chatReader.overlaplines = [];
+  chatReader.lastTimestamp = -1;
+  chatReader.lastTimestampUpdate = 0;
+  chatReader.addedLastread = false;
+  chatReader.font = null;
+  chatReader.lastReadBuffer = null;
+  chatPrimed = false;
 }
 
 function showToast(message: string): void {
@@ -197,8 +190,7 @@ function renderAkrisae(): void {
   }
 }
 
-function renderBrotherStates(remainingBrothers: BrotherId[] | null): void {
-  if (!remainingBrothers) return;
+function renderBrotherStates(remainingBrothers: BrotherId[]): void {
   const slainBrothers = new Set(
     getSlainBrothers(remainingBrothers, showAkrisaeToggle.checked),
   );
@@ -248,15 +240,15 @@ function clearSelection(reason: "manual" | "completion"): void {
 }
 
 function inspectNewChatLines(): void {
-  if (!reader?.pos) return;
-  const lines = reader.read();
+  if (!chatReader?.pos) return;
+  const lines = chatReader.read();
   if (!lines) return;
   const completionMessage = findCompletionMessage(lines.map((line) => line.text));
 
-  if (!readerPrimed) {
+  if (!chatPrimed) {
     if (completionMessage) completionMessageGuard.remember(completionMessage);
-    readerPrimed = true;
-    setStatus("ready", "Auto Reset Active", "Watching Brothers slain and completed-run chat.");
+    chatPrimed = true;
+    setStatus("ready", "Auto reset active", "Watching Brothers slain and the run-completion message.");
     return;
   }
 
@@ -285,11 +277,9 @@ function applyPanelState(panelBrothers: PanelBrotherId[]): void {
 function scanPanel(): void {
   if (!panelReader) return;
   const now = Date.now();
-  if (now - lastPanelScan < panelScanMs) return;
-  lastPanelScan = now;
 
   if (!panelReader.located) {
-    if (now - lastPanelLocateAttempt < panelRelocateMs) return;
+    if (now - lastPanelLocateAttempt < panelRetryMs) return;
     lastPanelLocateAttempt = now;
     panelReader.locate();
   }
@@ -301,13 +291,12 @@ function scanPanel(): void {
 }
 
 function locateChatbox(): void {
-  if (scanInProgress || !reader) return;
-  window.clearTimeout(locateRetryTimer);
-  scanInProgress = true;
-  lastLocateAttempt = Date.now();
+  if (!chatReader) return;
+  window.clearTimeout(chatLocateRetryTimer);
+  lastChatLocateAttempt = Date.now();
   try {
     a1lib.resetEnvironment();
-    const position = reader.find();
+    const position = chatReader.find();
     if (!position) {
       clearChatChoices("No chat windows found");
       setStatus("working", "Waiting for chatbox", "Detection will retry automatically.");
@@ -315,34 +304,32 @@ function locateChatbox(): void {
     }
     renderChatChoices(position as unknown as ChatReaderPosition);
     chatReaderWarmupUntil = 0;
-    readerPrimed = false;
+    chatPrimed = false;
     inspectNewChatLines();
   } catch (error) {
     if (error instanceof TypeError && Date.now() < chatReaderWarmupUntil) {
       setStatus("working", "Preparing chat watcher…", "Loading the chat detection templates.");
-      locateRetryTimer = window.setTimeout(locateChatbox, chatReaderRetryMs);
+      chatLocateRetryTimer = window.setTimeout(locateChatbox, chatReaderRetryMs);
       return;
     }
     console.error("Unable to locate the RuneScape chatbox", error);
     setStatus("warning", "Chat watcher paused", "Could not read the chatbox.", true);
-  } finally {
-    scanInProgress = false;
   }
 }
 
 function prepareChatReader(): void {
-  window.clearTimeout(locateRetryTimer);
-  reader = new ChatBoxReader();
+  window.clearTimeout(chatLocateRetryTimer);
+  chatReader = new ChatBoxReader();
   clearChatChoices("Finding chat windows…");
-  readerPrimed = false;
+  chatPrimed = false;
   chatReaderWarmupUntil = Date.now() + chatReaderWarmupMs;
-  locateRetryTimer = window.setTimeout(locateChatbox, chatReaderRetryMs);
+  chatLocateRetryTimer = window.setTimeout(locateChatbox, chatReaderRetryMs);
 }
 
 function startChatWatcher(): void {
-  window.clearInterval(scanTimer);
+  window.clearInterval(chatScanTimer);
   window.clearInterval(panelScanTimer);
-  window.clearTimeout(locateRetryTimer);
+  window.clearTimeout(chatLocateRetryTimer);
 
   if (!window.alt1) {
     chatSelectRow.hidden = true;
@@ -362,10 +349,10 @@ function startChatWatcher(): void {
   panelReader = new BrothersPanelReader();
   setStatus("working", "Finding chatbox…", "Keep the RuneScape chatbox visible.");
 
-  scanTimer = window.setInterval(() => {
+  chatScanTimer = window.setInterval(() => {
     try {
-      if (reader?.pos) inspectNewChatLines();
-      else if (Date.now() - lastLocateAttempt > 5000) locateChatbox();
+      if (chatReader?.pos) inspectNewChatLines();
+      else if (Date.now() - lastChatLocateAttempt > 5000) locateChatbox();
     } catch (error) {
       console.error("Automatic screen reading failed", error);
       prepareChatReader();
@@ -416,7 +403,7 @@ findChatButton.addEventListener("click", () => {
   setStatus("working", "Finding chatbox…", "Keep the RuneScape chatbox visible.");
 });
 chatSelect.addEventListener("change", () => {
-  const position = getChatReaderPosition();
+  const position = chatReader?.pos;
   if (!position) return;
   const selectedBox = position.boxes.find((box) => getChatBoxKey(box) === chatSelect.value);
   if (!selectedBox) return;
@@ -424,7 +411,7 @@ chatSelect.addEventListener("change", () => {
   position.mainbox = selectedBox;
   localStorage.setItem(chatSelectionKey, getChatBoxKey(selectedBox));
   resetChatReaderHistory();
-  setStatus("working", "Chat selected", "Reading this window for the next run reset.");
+  setStatus("working", "Chat selected", "Watching this window for run completion.");
 });
 
 const savedMound = localStorage.getItem(selectedMoundKey);
