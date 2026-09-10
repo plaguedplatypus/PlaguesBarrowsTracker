@@ -16,10 +16,10 @@ import {
 } from "./core";
 import "./style.css";
 
-const selectedMoundKey = "barrows-selected-mound";
-const chatSelectionKey = "barrows-chat-selection";
-const showAkrisaeKey = "barrows-show-akrisae";
-const showLinzaKey = "barrows-show-linza";
+const selectedMoundSetting = "barrows-selected-mound";
+const chatSelectionSetting = "barrows-chat-selection";
+const showAkrisaeSetting = "barrows-show-akrisae";
+const showLinzaSetting = "barrows-show-linza";
 const scanMs = 650;
 const panelScanMs = 1300;
 const panelRetryMs = 5000;
@@ -80,7 +80,7 @@ function setStatus(kind: StatusKind, title: string, detail: string, showFindChat
   findChatButton.hidden = !showFindChat;
 }
 
-function getChatBoxKey(box: Chatbox): string {
+function getChatBoxId(box: Chatbox): string {
   return [box.type, box.topright.x, box.topright.y, box.botleft.x, box.botleft.y].join(":");
 }
 
@@ -112,9 +112,9 @@ function clearChatChoices(message: string): void {
 }
 
 function renderChatChoices(position: ChatReaderPosition): void {
-  const savedKey = localStorage.getItem(chatSelectionKey);
-  const savedBox = savedKey
-    ? position.boxes.find((box) => getChatBoxKey(box) === savedKey)
+  const savedId = localStorage.getItem(chatSelectionSetting);
+  const savedBox = savedId
+    ? position.boxes.find((box) => getChatBoxId(box) === savedId)
     : undefined;
   const selectedBox = savedBox ?? position.mainbox;
   position.mainbox = selectedBox;
@@ -123,7 +123,7 @@ function renderChatChoices(position: ChatReaderPosition): void {
     ...position.boxes.map((box, index) => {
       const option = new Option(
         `${getChatTypeLabel(box.type)}${position.boxes.length > 1 ? ` ${index + 1}` : ""}`,
-        getChatBoxKey(box),
+        getChatBoxId(box),
       );
       option.selected = box === selectedBox;
       return option;
@@ -179,7 +179,7 @@ function renderAkrisae(): void {
   if (!shown) {
     if (akrisaeInput.checked) {
       akrisaeInput.checked = false;
-      localStorage.removeItem(selectedMoundKey);
+      localStorage.removeItem(selectedMoundSetting);
       renderSelection();
     }
     akrisaeInput.disabled = true;
@@ -220,7 +220,7 @@ function selectMound(mound: MoundId, announce = false): void {
   const input = moundInputs.find((candidate) => candidate.value === mound);
   if (!input) return;
   input.checked = true;
-  localStorage.setItem(selectedMoundKey, mound);
+  localStorage.setItem(selectedMoundSetting, mound);
   renderSelection();
   if (announce) showToast(`${moundNames[mound]} marked as the tunnel.`);
 }
@@ -228,7 +228,7 @@ function selectMound(mound: MoundId, announce = false): void {
 function clearSelection(reason: "manual" | "completion"): void {
   const hadSelection = getSelectedMound() !== null;
   moundInputs.forEach((input) => (input.checked = false));
-  localStorage.removeItem(selectedMoundKey);
+  localStorage.removeItem(selectedMoundSetting);
   renderSelection();
 
   if (reason === "completion") {
@@ -388,12 +388,12 @@ puzzleModal.addEventListener("click", (event) => {
   if (event.target === puzzleModal) puzzleModal.close();
 });
 showAkrisaeToggle.addEventListener("change", () => {
-  localStorage.setItem(showAkrisaeKey, showAkrisaeToggle.checked ? "true" : "false");
+  localStorage.setItem(showAkrisaeSetting, showAkrisaeToggle.checked ? "true" : "false");
   renderAkrisae();
   if (lastPanelBrothers) applyPanelState(lastPanelBrothers);
 });
 showLinzaToggle.addEventListener("change", () => {
-  localStorage.setItem(showLinzaKey, showLinzaToggle.checked ? "true" : "false");
+  localStorage.setItem(showLinzaSetting, showLinzaToggle.checked ? "true" : "false");
   renderLinza();
 });
 findChatButton.addEventListener("click", () => {
@@ -405,24 +405,24 @@ findChatButton.addEventListener("click", () => {
 chatSelect.addEventListener("change", () => {
   const position = chatReader?.pos;
   if (!position) return;
-  const selectedBox = position.boxes.find((box) => getChatBoxKey(box) === chatSelect.value);
+  const selectedBox = position.boxes.find((box) => getChatBoxId(box) === chatSelect.value);
   if (!selectedBox) return;
 
   position.mainbox = selectedBox;
-  localStorage.setItem(chatSelectionKey, getChatBoxKey(selectedBox));
+  localStorage.setItem(chatSelectionSetting, getChatBoxId(selectedBox));
   resetChatReaderHistory();
   setStatus("working", "Chat selected", "Watching this window for run completion.");
 });
 
-const savedMound = localStorage.getItem(selectedMoundKey);
-showAkrisaeToggle.checked = localStorage.getItem(showAkrisaeKey) === "true";
-showLinzaToggle.checked = localStorage.getItem(showLinzaKey) === "true";
+const savedMound = localStorage.getItem(selectedMoundSetting);
+showAkrisaeToggle.checked = localStorage.getItem(showAkrisaeSetting) === "true";
+showLinzaToggle.checked = localStorage.getItem(showLinzaSetting) === "true";
 renderAkrisae();
 renderLinza();
 if (isMoundId(savedMound) && (savedMound !== "akrisae" || showAkrisaeToggle.checked)) {
   selectMound(savedMound);
 } else {
-  localStorage.removeItem(selectedMoundKey);
+  localStorage.removeItem(selectedMoundSetting);
   renderSelection();
 }
 

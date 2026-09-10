@@ -104,7 +104,7 @@ export function findCompletionMessage(lines: string[]): string | null {
   return null;
 }
 
-function canonicalChatMessageKey(message: string): string {
+function simplifyChatMessage(message: string): string {
   return message
     .replace(/[‘’`]/g, "'")
     .toLowerCase()
@@ -113,25 +113,25 @@ function canonicalChatMessageKey(message: string): string {
 }
 
 export class RecentMessageGuard {
-  private readonly keys: string[] = [];
-  private readonly keySet = new Set<string>();
+  private readonly recent: string[] = [];
+  private readonly seen = new Set<string>();
 
   constructor(private readonly maximum = 100) {}
 
   remember(message: string): void {
-    const key = canonicalChatMessageKey(message);
-    if (!key || this.keySet.has(key)) return;
-    this.keys.push(key);
-    this.keySet.add(key);
-    if (this.keys.length > this.maximum) {
-      const oldest = this.keys.shift();
-      if (oldest) this.keySet.delete(oldest);
+    const simplified = simplifyChatMessage(message);
+    if (!simplified || this.seen.has(simplified)) return;
+    this.recent.push(simplified);
+    this.seen.add(simplified);
+    if (this.recent.length > this.maximum) {
+      const oldest = this.recent.shift();
+      if (oldest) this.seen.delete(oldest);
     }
   }
 
   accept(message: string): boolean {
-    const key = canonicalChatMessageKey(message);
-    if (!key || this.keySet.has(key)) return false;
+    const simplified = simplifyChatMessage(message);
+    if (!simplified || this.seen.has(simplified)) return false;
     this.remember(message);
     return true;
   }
