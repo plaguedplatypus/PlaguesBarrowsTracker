@@ -2,30 +2,30 @@ import ChatBoxReader, { type Chatbox } from "alt1/chatbox";
 import * as a1lib from "alt1/base";
 import BrothersPanelReader from "./brothers-panel";
 import {
-  MOUND_NAMES,
+  moundNames,
   type MoundId,
   RecentMessageGuard,
-  findBarrowsCompletionMessage,
-  getEnabledTunnelBrothers,
-  getSlainTunnelBrothers,
-  inferTunnelMound,
-  isTunnelBrotherId,
+  findCompletionMessage,
+  getEnabledBrothers,
+  getSlainBrothers,
+  inferMound,
+  isEligibleBrother,
   isMoundId,
   type PanelBrotherId,
-  type TunnelBrotherId,
+  type BrotherId,
 } from "./core";
 import "./style.css";
 
-const STORAGE_KEY = "barrows-tunnel-selected-mound";
-const CHAT_SELECTION_STORAGE_KEY = "barrows-tunnel-chat-selection";
-const SHOW_AKRISAE_STORAGE_KEY = "barrows-tunnel-show-akrisae";
-const SHOW_LINZA_STORAGE_KEY = "barrows-tunnel-show-linza";
-const SCAN_INTERVAL_MS = 650;
-const PANEL_SCAN_INTERVAL_MS = 1300;
-const PANEL_RELOCATE_INTERVAL_MS = 5000;
-const CHAT_READER_WARMUP_MS = 5000;
-const CHAT_READER_RETRY_MS = 500;
-const APP_CONFIG_URL = "./appconfig.json";
+const selectedMoundKey = "barrows-selected-mound";
+const chatSelectionKey = "barrows-chat-selection";
+const showAkrisaeKey = "barrows-show-akrisae";
+const showLinzaKey = "barrows-show-linza";
+const scanMs = 650;
+const panelScanMs = 1300;
+const panelRelocateMs = 5000;
+const chatReaderWarmupMs = 5000;
+const chatReaderRetryMs = 500;
+const appConfigUrl = "./appconfig.json";
 
 type StatusKind = "working" | "ready" | "warning";
 
@@ -59,7 +59,7 @@ let scanTimer: number | undefined;
 let panelScanTimer: number | undefined;
 let locateRetryTimer: number | undefined;
 let reader: ChatBoxReader | null = null;
-let brothersPanelReader: BrothersPanelReader | null = null;
+let panelReader: BrothersPanelReader | null = null;
 let readerPrimed = false;
 let scanInProgress = false;
 let lastLocateAttempt = 0;
@@ -67,7 +67,7 @@ let lastPanelScan = 0;
 let lastPanelLocateAttempt = 0;
 let chatReaderWarmupUntil = 0;
 let linzaRemaining: boolean | null = null;
-let lastRemainingPanelBrothers: PanelBrotherId[] | null = null;
+let lastPanelBrothers: PanelBrotherId[] | null = null;
 const completionMessageGuard = new RecentMessageGuard(100);
 
 type ChatReaderPosition = {
@@ -119,7 +119,7 @@ function clearChatChoices(message: string): void {
 }
 
 function renderChatChoices(position: ChatReaderPosition): void {
-  const savedKey = localStorage.getItem(CHAT_SELECTION_STORAGE_KEY);
+  const savedKey = localStorage.getItem(chatSelectionKey);
   const savedBox = savedKey
     ? position.boxes.find((box) => getChatBoxKey(box) === savedKey)
     : undefined;
@@ -167,7 +167,7 @@ function renderSelection(): void {
   const selected = getSelectedMound();
   map.classList.toggle("map--has-selection", selected !== null);
   summary.textContent = selected
-    ? `${MOUND_NAMES[selected]} leads underground.`
+    ? `${moundNames[selected]} leads underground.`
     : "Select the mound that leads underground.";
 }
 
@@ -186,21 +186,21 @@ function renderAkrisae(): void {
   if (!shown) {
     if (akrisaeInput.checked) {
       akrisaeInput.checked = false;
-      localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem(selectedMoundKey);
       renderSelection();
     }
     akrisaeInput.disabled = true;
     akrisaeSelector.classList.remove("mound--slain");
-    akrisaeInput.setAttribute("aria-label", MOUND_NAMES.akrisae);
+    akrisaeInput.setAttribute("aria-label", moundNames.akrisae);
   } else if (!akrisaeSelector.classList.contains("mound--slain")) {
     akrisaeInput.disabled = false;
   }
 }
 
-function renderBrotherStates(remainingBrothers: TunnelBrotherId[] | null): void {
+function renderBrotherStates(remainingBrothers: BrotherId[] | null): void {
   if (!remainingBrothers) return;
   const slainBrothers = new Set(
-    getSlainTunnelBrothers(remainingBrothers, showAkrisaeToggle.checked),
+    getSlainBrothers(remainingBrothers, showAkrisaeToggle.checked),
   );
 
   moundInputs.forEach((input) => {
@@ -208,7 +208,7 @@ function renderBrotherStates(remainingBrothers: TunnelBrotherId[] | null): void 
     const slain = slainBrothers.has(input.value);
     input.disabled = slain;
     input.closest(".mound")?.classList.toggle("mound--slain", slain);
-    input.setAttribute("aria-label", slain ? `${MOUND_NAMES[input.value]} — slain` : MOUND_NAMES[input.value]);
+    input.setAttribute("aria-label", slain ? `${moundNames[input.value]} — slain` : moundNames[input.value]);
   });
 }
 
@@ -216,10 +216,10 @@ function clearBrotherStates(): void {
   moundInputs.forEach((input) => {
     input.disabled = false;
     input.closest(".mound")?.classList.remove("mound--slain");
-    if (isMoundId(input.value)) input.setAttribute("aria-label", MOUND_NAMES[input.value]);
+    if (isMoundId(input.value)) input.setAttribute("aria-label", moundNames[input.value]);
   });
   linzaRemaining = null;
-  lastRemainingPanelBrothers = null;
+  lastPanelBrothers = null;
   renderAkrisae();
   renderLinza();
 }
@@ -228,15 +228,15 @@ function selectMound(mound: MoundId, announce = false): void {
   const input = moundInputs.find((candidate) => candidate.value === mound);
   if (!input) return;
   input.checked = true;
-  localStorage.setItem(STORAGE_KEY, mound);
+  localStorage.setItem(selectedMoundKey, mound);
   renderSelection();
-  if (announce) showToast(`${MOUND_NAMES[mound]} marked as the tunnel.`);
+  if (announce) showToast(`${moundNames[mound]} marked as the tunnel.`);
 }
 
 function clearSelection(reason: "manual" | "completion"): void {
   const hadSelection = getSelectedMound() !== null;
   moundInputs.forEach((input) => (input.checked = false));
-  localStorage.removeItem(STORAGE_KEY);
+  localStorage.removeItem(selectedMoundKey);
   renderSelection();
 
   if (reason === "completion") {
@@ -251,7 +251,7 @@ function inspectNewChatLines(): void {
   if (!reader?.pos) return;
   const lines = reader.read();
   if (!lines) return;
-  const completionMessage = findBarrowsCompletionMessage(lines.map((line) => line.text));
+  const completionMessage = findCompletionMessage(lines.map((line) => line.text));
 
   if (!readerPrimed) {
     if (completionMessage) completionMessageGuard.remember(completionMessage);
@@ -265,39 +265,39 @@ function inspectNewChatLines(): void {
   }
 }
 
-function applyBrothersPanelState(remainingPanelBrothers: PanelBrotherId[]): void {
-  linzaRemaining = remainingPanelBrothers.includes("linza");
-  const detectedTunnelBrothers = remainingPanelBrothers.filter(isTunnelBrotherId);
-  const remainingBrothers = getEnabledTunnelBrothers(
-    detectedTunnelBrothers,
+function applyPanelState(panelBrothers: PanelBrotherId[]): void {
+  linzaRemaining = panelBrothers.includes("linza");
+  const eligibleBrothers = panelBrothers.filter(isEligibleBrother);
+  const remainingBrothers = getEnabledBrothers(
+    eligibleBrothers,
     showAkrisaeToggle.checked,
   );
   renderBrotherStates(remainingBrothers);
   renderAkrisae();
   renderLinza();
-  const inferredMound = inferTunnelMound(remainingBrothers);
+  const inferredMound = inferMound(remainingBrothers);
   if (inferredMound && getSelectedMound() === null) {
     selectMound(inferredMound);
-    showToast(`${MOUND_NAMES[inferredMound]} inferred from Brothers slain.`);
+    showToast(`${moundNames[inferredMound]} inferred from Brothers slain.`);
   }
 }
 
-function inspectBrothersPanel(): void {
-  if (!brothersPanelReader) return;
+function scanPanel(): void {
+  if (!panelReader) return;
   const now = Date.now();
-  if (now - lastPanelScan < PANEL_SCAN_INTERVAL_MS) return;
+  if (now - lastPanelScan < panelScanMs) return;
   lastPanelScan = now;
 
-  if (!brothersPanelReader.located) {
-    if (now - lastPanelLocateAttempt < PANEL_RELOCATE_INTERVAL_MS) return;
+  if (!panelReader.located) {
+    if (now - lastPanelLocateAttempt < panelRelocateMs) return;
     lastPanelLocateAttempt = now;
-    brothersPanelReader.locate();
+    panelReader.locate();
   }
 
-  const remainingPanelBrothers = brothersPanelReader.readRemainingBrothers();
-  if (!remainingPanelBrothers) return;
-  lastRemainingPanelBrothers = remainingPanelBrothers;
-  applyBrothersPanelState(remainingPanelBrothers);
+  const panelBrothers = panelReader.readRemaining();
+  if (!panelBrothers) return;
+  lastPanelBrothers = panelBrothers;
+  applyPanelState(panelBrothers);
 }
 
 function locateChatbox(): void {
@@ -320,7 +320,7 @@ function locateChatbox(): void {
   } catch (error) {
     if (error instanceof TypeError && Date.now() < chatReaderWarmupUntil) {
       setStatus("working", "Preparing chat watcher…", "Loading the chat detection templates.");
-      locateRetryTimer = window.setTimeout(locateChatbox, CHAT_READER_RETRY_MS);
+      locateRetryTimer = window.setTimeout(locateChatbox, chatReaderRetryMs);
       return;
     }
     console.error("Unable to locate the RuneScape chatbox", error);
@@ -335,8 +335,8 @@ function prepareChatReader(): void {
   reader = new ChatBoxReader();
   clearChatChoices("Finding chat windows…");
   readerPrimed = false;
-  chatReaderWarmupUntil = Date.now() + CHAT_READER_WARMUP_MS;
-  locateRetryTimer = window.setTimeout(locateChatbox, CHAT_READER_RETRY_MS);
+  chatReaderWarmupUntil = Date.now() + chatReaderWarmupMs;
+  locateRetryTimer = window.setTimeout(locateChatbox, chatReaderRetryMs);
 }
 
 function startChatWatcher(): void {
@@ -346,20 +346,20 @@ function startChatWatcher(): void {
 
   if (!window.alt1) {
     chatSelectRow.hidden = true;
-    const addAppUrl = `alt1://addapp/${new URL(APP_CONFIG_URL, window.location.href).href}`;
+    const addAppUrl = `alt1://addapp/${new URL(appConfigUrl, window.location.href).href}`;
     setStatus("warning", "Browser preview", "Automatic reset works when this page runs in Alt1.", false);
     statusDetail.innerHTML = `Automatic reset works in Alt1. <a href="${addAppUrl}">Add local app</a>`;
     return;
   }
 
-  window.alt1.identifyAppUrl(APP_CONFIG_URL);
+  window.alt1.identifyAppUrl(appConfigUrl);
   if (!window.alt1.permissionPixel) {
     setStatus("warning", "Screen permission needed", "Enable “View screen” for this app in Alt1 settings.", false);
     return;
   }
 
   prepareChatReader();
-  brothersPanelReader = new BrothersPanelReader();
+  panelReader = new BrothersPanelReader();
   setStatus("working", "Finding chatbox…", "Keep the RuneScape chatbox visible.");
 
   scanTimer = window.setInterval(() => {
@@ -371,16 +371,16 @@ function startChatWatcher(): void {
       prepareChatReader();
       setStatus("working", "Restarting detection…", "Keep chat and Brothers slain visible.");
     }
-  }, SCAN_INTERVAL_MS);
+  }, scanMs);
 
   panelScanTimer = window.setInterval(() => {
     try {
-      inspectBrothersPanel();
+      scanPanel();
     } catch (error) {
       console.error("Brothers slain reading failed", error);
-      brothersPanelReader?.reset();
+      panelReader?.reset();
     }
-  }, PANEL_SCAN_INTERVAL_MS);
+  }, panelScanMs);
 }
 
 moundInputs.forEach((input) => {
@@ -401,17 +401,17 @@ puzzleModal.addEventListener("click", (event) => {
   if (event.target === puzzleModal) puzzleModal.close();
 });
 showAkrisaeToggle.addEventListener("change", () => {
-  localStorage.setItem(SHOW_AKRISAE_STORAGE_KEY, showAkrisaeToggle.checked ? "true" : "false");
+  localStorage.setItem(showAkrisaeKey, showAkrisaeToggle.checked ? "true" : "false");
   renderAkrisae();
-  if (lastRemainingPanelBrothers) applyBrothersPanelState(lastRemainingPanelBrothers);
+  if (lastPanelBrothers) applyPanelState(lastPanelBrothers);
 });
 showLinzaToggle.addEventListener("change", () => {
-  localStorage.setItem(SHOW_LINZA_STORAGE_KEY, showLinzaToggle.checked ? "true" : "false");
+  localStorage.setItem(showLinzaKey, showLinzaToggle.checked ? "true" : "false");
   renderLinza();
 });
 findChatButton.addEventListener("click", () => {
   prepareChatReader();
-  brothersPanelReader?.reset();
+  panelReader?.reset();
   lastPanelLocateAttempt = 0;
   setStatus("working", "Finding chatbox…", "Keep the RuneScape chatbox visible.");
 });
@@ -422,21 +422,20 @@ chatSelect.addEventListener("change", () => {
   if (!selectedBox) return;
 
   position.mainbox = selectedBox;
-  localStorage.setItem(CHAT_SELECTION_STORAGE_KEY, getChatBoxKey(selectedBox));
+  localStorage.setItem(chatSelectionKey, getChatBoxKey(selectedBox));
   resetChatReaderHistory();
   setStatus("working", "Chat selected", "Reading this window for the next run reset.");
 });
 
-const savedMound = localStorage.getItem(STORAGE_KEY);
-showAkrisaeToggle.checked = localStorage.getItem(SHOW_AKRISAE_STORAGE_KEY) === "true";
-showLinzaToggle.checked = localStorage.getItem(SHOW_LINZA_STORAGE_KEY) === "true";
+const savedMound = localStorage.getItem(selectedMoundKey);
+showAkrisaeToggle.checked = localStorage.getItem(showAkrisaeKey) === "true";
+showLinzaToggle.checked = localStorage.getItem(showLinzaKey) === "true";
 renderAkrisae();
 renderLinza();
 if (isMoundId(savedMound) && (savedMound !== "akrisae" || showAkrisaeToggle.checked)) {
   selectMound(savedMound);
-}
-else {
-  localStorage.removeItem(STORAGE_KEY);
+} else {
+  localStorage.removeItem(selectedMoundKey);
   renderSelection();
 }
 

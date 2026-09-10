@@ -1,4 +1,4 @@
-export const MOUND_NAMES = {
+export const moundNames = {
   verac: "Verac",
   akrisae: "Akrisae",
   dharok: "Dharok",
@@ -8,9 +8,9 @@ export const MOUND_NAMES = {
   karil: "Karil",
 } as const;
 
-export type MoundId = keyof typeof MOUND_NAMES;
+export type MoundId = keyof typeof moundNames;
 
-export const TUNNEL_BROTHER_TO_MOUND = {
+export const brotherMounds = {
   ahrim: "ahrim",
   dharok: "dharok",
   guthan: "guthan",
@@ -20,34 +20,36 @@ export const TUNNEL_BROTHER_TO_MOUND = {
   karil: "karil",
 } as const satisfies Record<string, MoundId>;
 
-export type TunnelBrotherId = keyof typeof TUNNEL_BROTHER_TO_MOUND;
-export type PanelBrotherId = TunnelBrotherId | "linza";
+export type BrotherId = keyof typeof brotherMounds;
+export type PanelBrotherId = BrotherId | "linza";
 
-export const TUNNEL_BROTHERS = Object.keys(TUNNEL_BROTHER_TO_MOUND) as TunnelBrotherId[];
+export const brothers = Object.keys(brotherMounds) as BrotherId[];
 
-export function isTunnelBrotherId(brother: PanelBrotherId): brother is TunnelBrotherId {
+export function isEligibleBrother(brother: PanelBrotherId): brother is BrotherId {
   return brother !== "linza";
 }
 
-export function getEnabledTunnelBrothers(
-  brothers: TunnelBrotherId[],
+export function getEnabledBrothers(
+  brothersToCheck: BrotherId[],
   includeAkrisae: boolean,
-): TunnelBrotherId[] {
-  return includeAkrisae ? [...brothers] : brothers.filter((brother) => brother !== "akrisae");
+): BrotherId[] {
+  return includeAkrisae
+    ? [...brothersToCheck]
+    : brothersToCheck.filter((brother) => brother !== "akrisae");
 }
 
-export function getSlainTunnelBrothers(
-  remainingBrothers: TunnelBrotherId[],
+export function getSlainBrothers(
+  remainingBrothers: BrotherId[],
   includeAkrisae = true,
-): TunnelBrotherId[] {
+): BrotherId[] {
   const remaining = new Set(remainingBrothers);
-  return getEnabledTunnelBrothers(TUNNEL_BROTHERS, includeAkrisae)
+  return getEnabledBrothers(brothers, includeAkrisae)
     .filter((brother) => !remaining.has(brother));
 }
 
-export function inferTunnelMound(remainingBrothers: TunnelBrotherId[]): MoundId | null {
+export function inferMound(remainingBrothers: BrotherId[]): MoundId | null {
   if (remainingBrothers.length !== 1) return null;
-  return TUNNEL_BROTHER_TO_MOUND[remainingBrothers[0]];
+  return brotherMounds[remainingBrothers[0]];
 }
 
 export type PixelBuffer = {
@@ -74,7 +76,7 @@ export function hasGoldPanelMarker(buffer: PixelBuffer, centerX: number, centerY
 }
 
 export function isMoundId(value: string | null): value is MoundId {
-  return value !== null && Object.prototype.hasOwnProperty.call(MOUND_NAMES, value);
+  return value !== null && Object.prototype.hasOwnProperty.call(moundNames, value);
 }
 
 export function normalizeChatLine(line: string): string {
@@ -85,28 +87,23 @@ export function normalizeChatLine(line: string): string {
     .trim();
 }
 
-/**
- * Matches the completion line requested for the helper. The optional quote marks
- * around the number and optional small connecting words make the detector
- * tolerant of chat wording and common OCR differences without matching normal
- * player chat that merely contains the phrase.
- */
-export function isBarrowsCompletionMessage(line: string): boolean {
+// Accept the normal completion line plus common OCR and formatting variants.
+export function isCompletionMessage(line: string): boolean {
   const normalized = normalizeChatLine(line);
   return /^You have killed ['"]?\d+['"]? (?:of )?(?:the )?Barrows Brothers\.?$/i.test(normalized);
 }
 
-export function containsBarrowsCompletionMessage(lines: string[]): boolean {
-  return findBarrowsCompletionMessage(lines) !== null;
+export function containsCompletionMessage(lines: string[]): boolean {
+  return findCompletionMessage(lines) !== null;
 }
 
-export function findBarrowsCompletionMessage(lines: string[]): string | null {
+export function findCompletionMessage(lines: string[]): string | null {
   for (let index = 0; index < lines.length; index += 1) {
     const line = lines[index];
-    if (isBarrowsCompletionMessage(line)) return line;
+    if (isCompletionMessage(line)) return line;
     if (index === 0) continue;
     const joined = `${lines[index - 1]} ${line}`;
-    if (isBarrowsCompletionMessage(joined)) return joined;
+    if (isCompletionMessage(joined)) return joined;
   }
   return null;
 }

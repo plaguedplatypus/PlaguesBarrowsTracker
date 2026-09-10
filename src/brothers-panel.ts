@@ -1,12 +1,12 @@
 import * as a1lib from "alt1/base";
 import { hasGoldPanelMarker, type PanelBrotherId } from "./core";
 
-const ANCHOR_URL = "./images/brothers-anchor.png";
-const REGION_TOP_FROM_ANCHOR = 69;
-const REGION_WIDTH = 172;
-const REGION_HEIGHT = 84;
+const anchorUrl = "./images/brothers-anchor.png";
+const regionTopFromAnchor = 69;
+const regionWidth = 172;
+const regionHeight = 84;
 
-const BROTHER_MARKERS: ReadonlyArray<{
+const brotherMarkers: ReadonlyArray<{
   brother: PanelBrotherId;
   x: number;
   y: number;
@@ -28,7 +28,7 @@ export default class BrothersPanelReader {
   private anchorPosition: Point | null = null;
 
   constructor() {
-    void a1lib.imageDataFromUrl(ANCHOR_URL)
+    void a1lib.imageDataFromUrl(anchorUrl)
       .then((image) => {
         this.anchorImage = image;
       })
@@ -51,24 +51,24 @@ export default class BrothersPanelReader {
     return this.anchorPosition !== null;
   }
 
-  readRemainingBrothers(): PanelBrotherId[] | null {
+  readRemaining(): PanelBrotherId[] | null {
     if (!this.anchorImage || !this.anchorPosition) return null;
 
     const region = a1lib.capture(
       this.anchorPosition.x,
-      this.anchorPosition.y - REGION_TOP_FROM_ANCHOR,
-      REGION_WIDTH,
-      REGION_HEIGHT,
+      this.anchorPosition.y - regionTopFromAnchor,
+      regionWidth,
+      regionHeight,
     );
 
-    const anchorY = REGION_TOP_FROM_ANCHOR;
+    const anchorY = regionTopFromAnchor;
     const anchorScore = a1lib.simpleCompare(region, this.anchorImage, 0, anchorY, 30);
     if (anchorScore === Infinity) {
       this.anchorPosition = null;
       return null;
     }
 
-    return BROTHER_MARKERS
+    return brotherMarkers
       .filter((marker) => hasGoldPanelMarker(region, marker.x, marker.y))
       .map((marker) => marker.brother);
   }
