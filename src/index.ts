@@ -26,17 +26,17 @@ const statusTitle = document.querySelector<HTMLElement>("#status-title")!;
 const statusDetail = document.querySelector<HTMLElement>("#status-detail")!;
 const resetButton = document.querySelector<HTMLButtonElement>("#reset-button")!;
 const settingsButton = document.querySelector<HTMLButtonElement>("#settings-button")!;
-const settingsCloseButton = document.querySelector<HTMLButtonElement>("#settings-close-button")!;
+const settingsClose = document.querySelector<HTMLButtonElement>("#settings-close-button")!;
 const settingsModal = document.querySelector<HTMLDialogElement>("#settings-modal")!;
 const puzzleButton = document.querySelector<HTMLButtonElement>("#puzzle-button")!;
-const puzzleCloseButton = document.querySelector<HTMLButtonElement>("#puzzle-close-button")!;
+const puzzleClose = document.querySelector<HTMLButtonElement>("#puzzle-close-button")!;
 const puzzleModal = document.querySelector<HTMLDialogElement>("#puzzle-modal")!;
 const showAkrisaeToggle = document.querySelector<HTMLInputElement>("#show-akrisae-toggle")!;
 const showLinzaToggle = document.querySelector<HTMLInputElement>("#show-linza-toggle")!;
 const akrisaeSelector = document.querySelector<HTMLElement>("#akrisae-selector")!;
 const akrisaeInput = akrisaeSelector.querySelector<HTMLInputElement>('input[name="mound"]')!;
 const linzaDisplay = document.querySelector<HTMLElement>("#linza-display")!;
-const findChatButton = document.querySelector<HTMLButtonElement>("#find-chat-button")!;
+const findChat = document.querySelector<HTMLButtonElement>("#find-chat-button")!;
 const chatSelectRow = document.querySelector<HTMLElement>("#chat-select-row")!;
 const chatSelect = document.querySelector<HTMLSelectElement>("#chat-select")!;
 const toast = document.querySelector<HTMLElement>("#toast")!;
@@ -80,7 +80,7 @@ function setStatus(kind: StatusKind, title: string, detail: string, showFindChat
   statusDot.dataset.kind = kind;
   statusTitle.textContent = title;
   statusDetail.textContent = detail;
-  findChatButton.hidden = !showFindChat;
+  findChat.hidden = !showFindChat;
 }
 
 function getChatBoxId(box: Chatbox): string {
@@ -360,12 +360,12 @@ moundInputs.forEach((input) => {
 
 resetButton.addEventListener("click", () => clearSelection("manual"));
 settingsButton.addEventListener("click", () => settingsModal.showModal());
-settingsCloseButton.addEventListener("click", () => settingsModal.close());
+settingsClose.addEventListener("click", () => settingsModal.close());
 settingsModal.addEventListener("click", (event) => {
   if (event.target === settingsModal) settingsModal.close();
 });
 puzzleButton.addEventListener("click", () => puzzleModal.showModal());
-puzzleCloseButton.addEventListener("click", () => puzzleModal.close());
+puzzleClose.addEventListener("click", () => puzzleModal.close());
 puzzleModal.addEventListener("click", (event) => {
   if (event.target === puzzleModal) puzzleModal.close();
 });
@@ -378,7 +378,7 @@ showLinzaToggle.addEventListener("change", () => {
   localStorage.setItem(showLinza, showLinzaToggle.checked ? "true" : "false");
   renderLinza();
 });
-findChatButton.addEventListener("click", () => {
+findChat.addEventListener("click", () => {
   prepareChatReader();
   panelReader?.reset();
   lastPanelLocateAttempt = 0;
