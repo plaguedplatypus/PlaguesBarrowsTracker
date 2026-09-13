@@ -1,25 +1,15 @@
 import ChatBoxReader, { type Chatbox } from "alt1/chatbox";
 import * as a1lib from "alt1/base";
 import BrothersPanelReader from "./brothers-panel";
-import {
-  moundNames,
-  type MoundId,
-  RecentMessageGuard,
-  findCompletionMessage,
-  getEnabledBrothers,
-  getSlainBrothers,
-  inferMound,
-  isEligibleBrother,
-  isMoundId,
-  type PanelBrotherId,
-  type BrotherId,
-} from "./core";
+import { moundNames, type MoundId, RecentMessageGuard, findCompletionMessage,
+  getEnabledBrothers, getSlainBrothers, inferMound, isEligibleBrother, isMoundId,
+  type PanelBrotherId, type BrotherId, } from "./core";
 import "./style.css";
 
-const selectedMoundSetting = "barrows-selected-mound";
-const chatSelectionSetting = "barrows-chat-selection";
-const showAkrisaeSetting = "barrows-show-akrisae";
-const showLinzaSetting = "barrows-show-linza";
+const selectedMound = "barrows-selected-mound";
+const chatSelection = "barrows-chat-selection";
+const showAkrisae = "barrows-show-akrisae";
+const showLinza = "barrows-show-linza";
 const scanMs = 650;
 const panelScanMs = 1300;
 const panelRetryMs = 5000;
@@ -73,6 +63,19 @@ type ChatReaderPosition = {
   boxes: Chatbox[];
 };
 
+type ChatboxType = Chatbox["type"];
+
+const chatTypeLabels: Record<ChatboxType, string> = {
+  main: "Main chat",
+  cc: "Clan chat",
+  fc: "Friends chat",
+  gc: "Group chat",
+  gcc: "Guest clan chat",
+  private: "Private chat",
+  gimc: "Group ironman chat",
+  unknown: "Chat window",
+};
+
 function setStatus(kind: StatusKind, title: string, detail: string, showFindChat = true): void {
   statusDot.dataset.kind = kind;
   statusTitle.textContent = title;
@@ -84,27 +87,6 @@ function getChatBoxId(box: Chatbox): string {
   return [box.type, box.topright.x, box.topright.y, box.botleft.x, box.botleft.y].join(":");
 }
 
-function getChatTypeLabel(type: Chatbox["type"]): string {
-  switch (type) {
-    case "main":
-      return "Main chat";
-    case "cc":
-      return "Clan chat";
-    case "fc":
-      return "Friends chat";
-    case "gc":
-      return "Group chat";
-    case "gcc":
-      return "Group chat (guest)";
-    case "private":
-      return "Private chat";
-    case "gimc":
-      return "Group ironman chat";
-    default:
-      return "Chat window";
-  }
-}
-
 function clearChatChoices(message: string): void {
   chatSelectRow.hidden = true;
   chatSelect.replaceChildren(new Option(message, ""));
@@ -112,7 +94,7 @@ function clearChatChoices(message: string): void {
 }
 
 function renderChatChoices(position: ChatReaderPosition): void {
-  const savedId = localStorage.getItem(chatSelectionSetting);
+  const savedId = localStorage.getItem(chatSelection);
   const savedBox = savedId
     ? position.boxes.find((box) => getChatBoxId(box) === savedId)
     : undefined;
@@ -122,7 +104,7 @@ function renderChatChoices(position: ChatReaderPosition): void {
   chatSelect.replaceChildren(
     ...position.boxes.map((box, index) => {
       const option = new Option(
-        `${getChatTypeLabel(box.type)}${position.boxes.length > 1 ? ` ${index + 1}` : ""}`,
+        `${chatTypeLabels[box.type]}${position.boxes.length > 1 ? ` ${index + 1}` : ""}`,
         getChatBoxId(box),
       );
       option.selected = box === selectedBox;
@@ -179,7 +161,7 @@ function renderAkrisae(): void {
   if (!shown) {
     if (akrisaeInput.checked) {
       akrisaeInput.checked = false;
-      localStorage.removeItem(selectedMoundSetting);
+      localStorage.removeItem(selectedMound);
       renderSelection();
     }
     akrisaeInput.disabled = true;
@@ -220,7 +202,7 @@ function selectMound(mound: MoundId, announce = false): void {
   const input = moundInputs.find((candidate) => candidate.value === mound);
   if (!input) return;
   input.checked = true;
-  localStorage.setItem(selectedMoundSetting, mound);
+  localStorage.setItem(selectedMound, mound);
   renderSelection();
   if (announce) showToast(`${moundNames[mound]} marked as the tunnel.`);
 }
@@ -228,7 +210,7 @@ function selectMound(mound: MoundId, announce = false): void {
 function clearSelection(reason: "manual" | "completion"): void {
   const hadSelection = getSelectedMound() !== null;
   moundInputs.forEach((input) => (input.checked = false));
-  localStorage.removeItem(selectedMoundSetting);
+  localStorage.removeItem(selectedMound);
   renderSelection();
 
   if (reason === "completion") {
@@ -388,12 +370,12 @@ puzzleModal.addEventListener("click", (event) => {
   if (event.target === puzzleModal) puzzleModal.close();
 });
 showAkrisaeToggle.addEventListener("change", () => {
-  localStorage.setItem(showAkrisaeSetting, showAkrisaeToggle.checked ? "true" : "false");
+  localStorage.setItem(showAkrisae, showAkrisaeToggle.checked ? "true" : "false");
   renderAkrisae();
   if (lastPanelBrothers) applyPanelState(lastPanelBrothers);
 });
 showLinzaToggle.addEventListener("change", () => {
-  localStorage.setItem(showLinzaSetting, showLinzaToggle.checked ? "true" : "false");
+  localStorage.setItem(showLinza, showLinzaToggle.checked ? "true" : "false");
   renderLinza();
 });
 findChatButton.addEventListener("click", () => {
@@ -409,20 +391,20 @@ chatSelect.addEventListener("change", () => {
   if (!selectedBox) return;
 
   position.mainbox = selectedBox;
-  localStorage.setItem(chatSelectionSetting, getChatBoxId(selectedBox));
+  localStorage.setItem(chatSelection, getChatBoxId(selectedBox));
   resetChatReaderHistory();
   setStatus("working", "Chat selected", "Watching this window for run completion.");
 });
 
-const savedMound = localStorage.getItem(selectedMoundSetting);
-showAkrisaeToggle.checked = localStorage.getItem(showAkrisaeSetting) === "true";
-showLinzaToggle.checked = localStorage.getItem(showLinzaSetting) === "true";
+const savedMound = localStorage.getItem(selectedMound);
+showAkrisaeToggle.checked = localStorage.getItem(showAkrisae) === "true";
+showLinzaToggle.checked = localStorage.getItem(showLinza) === "true";
 renderAkrisae();
 renderLinza();
 if (isMoundId(savedMound) && (savedMound !== "akrisae" || showAkrisaeToggle.checked)) {
   selectMound(savedMound);
 } else {
-  localStorage.removeItem(selectedMoundSetting);
+  localStorage.removeItem(selectedMound);
   renderSelection();
 }
 

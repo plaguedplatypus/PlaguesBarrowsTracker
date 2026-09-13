@@ -4,10 +4,10 @@
   "private": true,
   "description": "Alt1 helper for remembering the Barrows final-encounter mound.",
   "scripts": {
-    "build": "webpack --mode production",
-    "start": "webpack serve --mode development --host 127.0.0.1 --port 8080",
-    "serve": "http-server dist -a 127.0.0.1 -p 8080 -c-1",
-    "typecheck": "tsc --noEmit"
+    "start": "webpack serve --mode development --open false",
+    "watch": "webpack --watch --mode development",
+    "typecheck": "tsc --noEmit",
+    "build": "npm run typecheck && webpack --mode production"
   },
   "dependencies": {
     "alt1": "^0.1.3"

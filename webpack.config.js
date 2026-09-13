@@ -3,11 +3,12 @@ const HtmlWebpackPlugin = require("html-webpack-plugin");
 const CopyWebpackPlugin = require("copy-webpack-plugin");
 
 module.exports = {
-  entry: "./src/index.ts",
+  context: path.resolve(__dirname, "src"),
+  entry: "./index.ts",
   output: {
-    filename: "app.js",
     path: path.resolve(__dirname, "dist"),
-    clean: true,
+    filename: "main.js",
+    clean: true
   },
   devtool: false,
   resolve: {
@@ -18,51 +19,44 @@ module.exports = {
       "electron/common": false,
     },
   },
-  module: {
+   module: {
+    // The rules section tells webpack what to do with different file types when you import them from js/ts
     rules: [
       {
-        test: /\.ts$/,
-        use: "ts-loader",
-        exclude: /node_modules/,
+        test: /\.tsx?$/,
+        use: {
+          loader: "ts-loader",
+          options: {
+            transpileOnly: true
+          }
+        },
+        exclude: /node_modules[\\/](?!alt1[\\/])/
       },
-      {
-        test: /\.css$/,
-        use: [
-          "style-loader",
-          {
-            loader: "css-loader",
-            options: { url: false },
-          },
-        ],
-      },
-      {
-        test: /\.(png|svg|jpg|jpeg)$/i,
-        type: "asset/resource",
-      },
-    ],
+      { test: /\.css$/, use: ["style-loader", { loader: "css-loader", options: { url: false }, },] },
+      { test: /\.scss$/, use: ["style-loader", "css-loader", "sass-loader"] },
+
+      // file types useful for writing alt1 apps, make sure these two loader come after any other json or png loaders, otherwise they will be ignored
+      { test: /\.data\.png$/, loader: "alt1/imagedata-loader", type: "javascript/auto" },
+      { test: /\.fontmeta\.json$/, loader: "alt1/font-loader", type: "json" }
+    ]
   },
   plugins: [
     new HtmlWebpackPlugin({
-      template: "./src/index.html",
+      template: "./index.html",
       inject: "body",
     }),
     new CopyWebpackPlugin({
       patterns: [
-        { from: "src/appconfig.json", to: "appconfig.json" },
-        { from: "src/images/map.png", to: "images/map.png" },
-        { from: "src/images/bg.png", to: "images/bg.png" },
-        { from: "src/images/coffee.png", to: "images/coffee.png" },
-        { from: "src/images/discord.png", to: "images/discord.png" },
-        { from: "src/images/brothers-anchor.data.png", to: "images/brothers-anchor.png" },
-        { from: "src/images/decreasing-sides.png", to: "images/decreasing-sides.png" },
-        { from: "src/images/rotating-arrow.png", to: "images/rotating-arrow.png" },
-        { from: "src/images/rising-grey-space.png", to: "images/rising-grey-space.png" },
-        { from: "src/images/clockwise-grey-space.png", to: "images/clockwise-grey-space.png" },
-      ],
-    }),
+        { from: "appconfig.json", to: "appconfig.json" },
+        { from: "images", to: "images" },
+      ]
+    })
   ],
   devServer: {
-    static: path.resolve(__dirname, "dist"),
+    static: { directory: path.resolve(__dirname, "dist") },
+    port: 8080,
     hot: true,
+    client: { overlay: true }
   },
+  performance: { hints: false }
 };
