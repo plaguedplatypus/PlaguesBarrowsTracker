@@ -496,47 +496,6 @@ h1 {
   outline-offset: 2px;
 }
 
-.support-links {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.support-link {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  min-width: 0;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  opacity: 0.5;
-  color: #d8bd7d;
-  font-size: 10px;
-  white-space: nowrap;
-  text-decoration: none;
-  transition: color 120ms ease;
-}
-
-.support-link:hover,
-.support-link:focus-visible {
-  color: #f0e4ca;
-  opacity: 0.80;
-  outline: none;
-}
-
-.support-link img {
-  width: 14px;
-  height: 14px;
-  object-fit: contain;
-}
-
-.support-link span {
-  min-width: 0;
-}
-
 .puzzle-intro {
   margin: 6px 0 6px;
   color: #d2d0c6;
