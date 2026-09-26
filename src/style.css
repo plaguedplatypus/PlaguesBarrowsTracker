@@ -19,7 +19,7 @@ body {
   overflow: hidden;
   background:
     linear-gradient(rgba(5, 15, 20, 0.18), rgba(5, 15, 20, 0.50)),
-    url("./images/bg.png") center / cover no-repeat;
+    url("./images/bg.png") repeat;
 }
 
 button,
@@ -327,7 +327,7 @@ h1 {
   border-radius: 10px;
   background:
     linear-gradient(rgba(5, 15, 20, 0.18), rgba(5, 15, 20, 0.50)),
-    url("./images/bg.png") center / cover no-repeat;
+    url("./images/bg.png") repeat;
   color: #ede8da;
   scrollbar-gutter: stable;
 }
